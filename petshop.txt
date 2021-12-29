@@ -1,0 +1,152 @@
+create table pet_details(
+pet_id number(5) GENERATED ALWAYS AS IDENTITY START WITH 1 primary key ,
+pet_type varchar2(20) not null ,
+pet_name varchar2(50) not null ,
+pet_gender varchar2(10) not null,
+pet_dob date,
+pet_Qty number(3) CONSTRAINT petqty check (pet_qty>0) ,
+pet_Description varchar2(1000),
+pet_color varchar2(20),
+pet_price number(12,2) CONSTRAINT petprice check (pet_price>0),
+pet_image VARCHAR2(500),
+Status varchar2(30) default 'Not approved',
+Customer_id number(5) not null,
+admin_id number(5) default 0,
+pet_registerdate date default (sysdate));
+
+alter table pet_details add Available_oty number(3) default 0;
+update pet_details set available_Qty=to_number(pet_qty);
+alter table pet_details rename column available_oty to available_Qty;
+
+select * from pet_details;
+select pet_id from pet_details;
+update pet_details set pet_qty=available_qty;
+
+INSERT into pet_details(pet_type,pet_name,pet_gender,pet_dob,pet_Qty,pet_description,
+pet_color,pet_price,pet_image,customer_id) values('Dog','french bulldog','male','08-12-2021',1,'The French Bulldog,
+French: Bouledogue Français, is a French breed of companion dog or toy dog. It appeared in Paris 
+in the mid-nineteenth century, apparently the result of cross-breeding of Toy Bulldogs imported 
+from England and local Parisian ratters','White',10000,'https://ewscripps.brightspotcdn.com/dims4/default/0337aed/2147483647/strip/true/crop/640x360+0+60/resize/1280x720!/quality/90/?url=http%3A%2F%2Fewscripps-brightspot.s3.amazonaws.com%2F4d%2Fa5%2F43b4619043959911db3c2ec59fe5%2Ffrenchie-pic.jpg',
+1);
+select pet_id,pet_type,pet_name,pet_gender,pet_dob,pet_description,pet_color,pet_qty,pet_price,pet_image,status,pet_registerdate from pet_details;
+
+
+
+
+create table Customers (
+Customer_id number(5) GENERATED ALWAYS AS IDENTITY START WITH 1 primary key ,
+Customer_firstname VARCHAR2(32) Not null,
+Customer_lastname VARCHAR2(32) Not null,
+Customer_gender varchar2(10) default 'male',
+Customer_username VARCHAR2(32) UNIQUE not null,
+Customer_password varchar2(32) not null,
+Customer_email VARCHAR2(32) unique not null,
+Customer_mobilenumber number(15) not null,
+customer_image VARCHAR2(200) DEFAULT 'none',
+Customer_bank number(20) default 000000,
+Customer_reg_date date default (sysdate),
+Customer_address varchar2(300) DEFAULT 'none',
+customer_city VARCHAR2(50) default 'none',
+Customer_pincode number(8) DEFAULT 000000);
+
+select * from customers;
+
+
+create table orders(
+Order_id number(5) GENERATED ALWAYS AS IDENTITY START WITH 1 primary key ,
+Customer_id number(5) not null,
+order_date date default sysdate,
+Total_price number(15,2) not null,
+order_status varchar2(20) default 'NotDelivered',
+CONSTRAINT FK_OrderCustomerId foreign key(Customer_id) REFERENCES customers(Customer_id));
+
+
+select * from orders;
+
+create table order_items(
+item_id number(5)GENERATED ALWAYS AS IDENTITY START WITH 1 primary key,
+order_id number(5) not null,
+pet_id number(5) not null,
+Quantity number(5) not NULL,
+unit_price number(10,2) not null,
+total_price number(15,2)not null,
+CONSTRAINT FK_OrderItemsPetId foreign key(pet_id) REFERENCES Pet_details(pet_id),
+CONSTRAINT FK_OrderItemsOrderId foreign key(order_id) REFERENCES orders(order_id));
+
+select * from order_items;
+select * from order_items oi inner join orders o on oi.order_id=o.order_id where customer_id=2;
+
+select oi.item_id,oi.order_id,oi.pet_id,oi.unit_price,oi.total_price from order_items oi 
+inner join orders o on 
+oi.order_id=o.order_id where customer_id=2;
+--create table carts(
+--cart_id number(5) GENERATED ALWAYS AS IDENTITY START WITH 1 primary key,
+--Customer_id number(5) not null,
+--CONSTRAINT FK_CartsCustomerId foreign key(Customer_id) REFERENCES Customers(Customer_id));
+
+
+
+
+create table cart_items(
+item_id number(5) GENERATED ALWAYS AS IDENTITY START WITH 1 primary key,
+pet_id number(5) not null,
+customer_id number(5) not null,
+Quantity number(5) not null,
+unit_price number(10,2) not null,
+total_price number(15,2) not null,
+CONSTRAINT FK_CartItemsPetId foreign key(pet_id) REFERENCES pet_details(pet_id),
+CONSTRAINT FK_CartItemsCustomerId foreign key(Customer_id) REFERENCES customers(Customer_id));
+
+
+select * from cart_items;
+
+create table Admin_details(
+Admin_id number(5) GENERATED ALWAYS AS IDENTITY START WITH 1 primary key,
+admin_FirstName varchar2(32) not null,
+admin_LastName varchar2(32) not null,
+Admin_username varchar2(32) not null UNIQUE,
+admin_password varchar(32) not null,
+admin_Email varchar2(50) not null,
+admin_number number(15)not null,
+admin_registerDate date default (sysdate));
+
+
+
+select * from admin_details;
+insert into admin_details(admin_firstname,admin_lastname,admin_username,admin_password,admin_email,admin_number)
+values('Hariharan','Ganesan','Adminhari','adminhari','adminhari@gmail.com',8489638004);
+
+
+
+
+
+
+
+
+
+
+
+
+
+set serveroutput on
+declare
+username animals_customers.customer_username%TYPE:='&username';
+password animals_customers.customer_password%TYPE:='&password';
+firstname animals_customers.customer_firstname%TYPE;
+begin
+select admin_firstname into firstname 
+        from admin_details 
+        where admin_username=username and admin_password=password;
+        dbms_output.put_line('Admin firstname: ' || firstname );
+EXCEPTION 
+        WHEN NO_DATA_FOUND THEN
+        select customer_firstname into firstname
+        from customers 
+        where customer_username=username and customer_password=password;
+        dbms_output.put_line('user firstname: ' || firstname );
+end;
+/
+
+select * from customers;
+
+
